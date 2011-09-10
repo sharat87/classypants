@@ -6,24 +6,76 @@
            [javax.swing ListSelectionModel]
            [java.io File]))
 
+(native!)
+
 (defn get-cp-entries
   [classpath]
   (remove empty? (.split classpath ":")))
 
 (defn set-cp-clipboard
   [entries]
-  (set-clipboard-text (reduce (fn [a b] (str a ":" b))
-                              (enumeration-seq (.elements entries)))))
+  (set-clipboard-text (reduce (fn [a b] (str a ":" b)) entries)))
+
+(def current-entries
+  (atom (get-cp-entries (System/getProperty "java.class.path"))))
+
+(defn filter-paths
+  [filter-text entries]
+  (filter
+    (fn [entry]
+      (not= (.indexOf entry filter-text) -1))
+    entries))
+
+(defn apply-filtered-data!
+  [fr]
+  (config! (select fr [:#cp-listbox])
+           :model (filter-paths
+                    (config (select fr [:#filter-input]) :text)
+                    @current-entries)))
+
+(defn reset-cplist
+  [fr]
+  (config! (select fr [:#cp-listbox])
+           :model @current-entries))
+
+(defn delete-handler
+  [fr e]
+  (let [cp-listbox (select fr [:#cp-listbox])
+        data-model (.getModel cp-listbox)
+        selection-model (.getSelectionModel cp-listbox)]
+    (swap! current-entries
+           (fn [prev-entries]
+             (remove nil? (map-indexed
+                             (fn [i entry]
+                               (if (.isSelectedIndex selection-model i)
+                                 nil
+                                 entry))
+                             prev-entries))))
+    (reset-cplist fr)))
+
+(defn copy-handler
+  [fr e]
+  (set-cp-clipboard (filter-paths
+                      (config (select fr [:#filter-input]) :text)
+                      (enumeration-seq
+                        (.elements (config (select fr [:#cp-listbox]) :model))))))
+
+(defn paste-handler
+  [fr e]
+  (swap! current-entries
+         (fn [_] (get-cp-entries (get-clipboard-text))))
+  (apply-filtered-data! fr))
 
 (defn -main
   []
   (let [main-frame (frame :title "Towpath"
                           :size [800 :by 600]
                           :on-close :exit)
-        error-unselected-color (Color. 223 89 255)
-        error-selected-color (Color. 255 120 120)
+        error-selected-color (Color. 223 89 255)
+        error-unselected-color (Color. 255 120 120)
         cp-listbox (listbox
-                     :model (get-cp-entries (System/getProperty "java.class.path"))
+                     :id :cp-listbox
+                     :model @current-entries
                      :renderer (fn [this state]
                                  (if-not (.exists (File. (:value state)))
                                    (.setBackground this (if (:selected? state)
@@ -32,31 +84,27 @@
     (.setSelectionMode (.getSelectionModel cp-listbox) ListSelectionModel/MULTIPLE_INTERVAL_SELECTION)
     (config! main-frame
              :content (mig-panel
-                        :constraints ["" "" ""]
                         :items [[(action :name "Copy"
-                                         :handler (fn [e]
-                                                    (set-cp-clipboard (config cp-listbox :model))))
+                                         :handler #(copy-handler main-frame %))
                                  "split"]
                                 [(action :name "Paste"
-                                         :handler (fn [e]
-                                                    (config! cp-listbox :model (get-cp-entries (get-clipboard-text)))))]
+                                         :handler #(paste-handler main-frame %))]
                                 [(action :name "Delete Selected"
-                                         :handler (fn [e]
-                                                    (let [data-model (.getModel cp-listbox)
-                                                          selection-model (.getSelectionModel cp-listbox)]
-                                                      (loop [i (- (.size data-model) 1)]
-                                                        (if (.isSelectedIndex selection-model i)
-                                                          (.removeElementAt data-model i))
-                                                        (if-not (zero? i)
-                                                          (recur (- i 1)))))))
+                                         :handler #(delete-handler main-frame %))
                                  "wrap"]
                                 ["Filter:" "split"]
-                                [(text :id :filter-input) "grow"]
+                                [(letfn [(handler [e]
+                                           (apply-filtered-data! main-frame))]
+                                   (text :id :filter-input
+                                     :listen [:changed-update handler
+                                              :insert-update handler
+                                              :remove-update handler]))
+                                 "grow"]
                                 [(action :name "< Clear"
                                          :handler (fn [e]
                                                     (config!
                                                       (select main-frame [:#filter-input])
                                                       :text "")))
                                  "wrap"]
-                                [(scrollable cp-listbox) "span, grow, push"]]))
-    (show! main-frame)))
+                                [(scrollable cp-listbox) "span, grow, push"]])
+             :visible? true)))
