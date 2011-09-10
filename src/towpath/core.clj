@@ -17,7 +17,10 @@
 
 (defn -main
   []
-  (let [error-unselected-color (Color. 223 89 255)
+  (let [main-frame (frame :title "Towpath"
+                          :size [800 :by 600]
+                          :on-close :exit)
+        error-unselected-color (Color. 223 89 255)
         error-selected-color (Color. 255 120 120)
         cp-listbox (listbox
                      :model (get-cp-entries (System/getProperty "java.class.path"))
@@ -27,27 +30,33 @@
                                                           error-selected-color
                                                           error-unselected-color)))))]
     (.setSelectionMode (.getSelectionModel cp-listbox) ListSelectionModel/MULTIPLE_INTERVAL_SELECTION)
-    (-> (frame :title "Towpath"
-               :size [800 :by 600]
-               :on-close :exit
-               :content (mig-panel
-                          :constraints ["" "" ""]
-                          :items [[(action :name "Copy"
-                                           :handler (fn [e]
-                                                      (set-cp-clipboard (config cp-listbox :model))))
-                                   "split"]
-                                  [(action :name "Paste"
-                                           :handler (fn [e]
-                                                      (config! cp-listbox :model (get-cp-entries (get-clipboard-text)))))]
-                                  [(action :name "Delete Selected"
-                                           :handler (fn [e]
-                                                      (let [data-model (.getModel cp-listbox)
-                                                            selection-model (.getSelectionModel cp-listbox)]
-                                                        (loop [i (- (.size data-model) 1)]
-                                                          (if (.isSelectedIndex selection-model i)
-                                                            (.removeElementAt data-model i))
-                                                          (if-not (zero? i)
-                                                            (recur (- i 1)))))))
-                                   "wrap"]
-                                  [(scrollable cp-listbox) "span, grow, push"]]))
-      show!)))
+    (config! main-frame
+             :content (mig-panel
+                        :constraints ["" "" ""]
+                        :items [[(action :name "Copy"
+                                         :handler (fn [e]
+                                                    (set-cp-clipboard (config cp-listbox :model))))
+                                 "split"]
+                                [(action :name "Paste"
+                                         :handler (fn [e]
+                                                    (config! cp-listbox :model (get-cp-entries (get-clipboard-text)))))]
+                                [(action :name "Delete Selected"
+                                         :handler (fn [e]
+                                                    (let [data-model (.getModel cp-listbox)
+                                                          selection-model (.getSelectionModel cp-listbox)]
+                                                      (loop [i (- (.size data-model) 1)]
+                                                        (if (.isSelectedIndex selection-model i)
+                                                          (.removeElementAt data-model i))
+                                                        (if-not (zero? i)
+                                                          (recur (- i 1)))))))
+                                 "wrap"]
+                                ["Filter:" "split"]
+                                [(text :id :filter-input) "grow"]
+                                [(action :name "< Clear"
+                                         :handler (fn [e]
+                                                    (config!
+                                                      (select main-frame [:#filter-input])
+                                                      :text "")))
+                                 "wrap"]
+                                [(scrollable cp-listbox) "span, grow, push"]]))
+    (show! main-frame)))
