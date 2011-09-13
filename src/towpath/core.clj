@@ -8,9 +8,19 @@
 
 (native!)
 
+(defrecord CpEntry [path exists? matches?])
+
+(defn new-cpentry
+  [path]
+  (CpEntry. path
+            (.exists (File. path))
+            true))
+
 (defn get-cp-entries
   [classpath]
-  (remove empty? (.split classpath ":")))
+  (->> (.split classpath ":")
+    (remove empty?)
+    (map new-cpentry)))
 
 (defn set-cp-clipboard
   [entries]
@@ -21,9 +31,9 @@
 
 (defn filter-paths
   [filter-text entries]
-  (filter
+  (map
     (fn [entry]
-      (not= (.indexOf entry filter-text) -1))
+      (assoc entry :matches? (not= (.indexOf (:path entry) filter-text) -1)))
     entries))
 
 (defn apply-filtered-data!
@@ -77,10 +87,15 @@
                      :id :cp-listbox
                      :model @current-entries
                      :renderer (fn [this state]
-                                 (if-not (.exists (File. (:value state)))
-                                   (.setBackground this (if (:selected? state)
-                                                          error-selected-color
-                                                          error-unselected-color)))))]
+                                 (let [entry (:value state)]
+                                   (.setText this (:path entry))
+                                   (.setForeground this (if (:matches? entry)
+                                                          Color/black
+                                                          (Color. 180 180 180)))
+                                   (if-not (:exists? entry)
+                                     (.setBackground this (if (:selected? state)
+                                                            error-selected-color
+                                                            error-unselected-color))))))]
     (.setSelectionMode (.getSelectionModel cp-listbox) ListSelectionModel/MULTIPLE_INTERVAL_SELECTION)
     (config! main-frame
              :content (mig-panel
