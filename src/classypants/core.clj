@@ -1,7 +1,8 @@
-(ns towpath.core
+(ns classypants.core
   (:use seesaw.core
         [seesaw.mig :only (mig-panel)]
-        towpath.clipboard)
+        [clojure.contrib.string :as string]
+        classypants.clipboard)
   (:import [java.awt Color]
            [javax.swing ListSelectionModel]
            [java.io File]))
@@ -24,7 +25,7 @@
 
 (defn set-cp-clipboard
   [entries]
-  (set-clipboard-text (reduce (fn [a b] (str a ":" b)) entries)))
+  (set-clipboard-text (string/join ":" (map :path entries))))
 
 (def current-entries
   (atom (get-cp-entries (System/getProperty "java.class.path"))))
@@ -78,7 +79,7 @@
 
 (defn -main
   []
-  (let [main-frame (frame :title "Towpath"
+  (let [main-frame (frame :title "Classypants"
                           :size [800 :by 600]
                           :on-close :exit)
         error-selected-color (Color. 223 89 255)

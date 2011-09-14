@@ -1,4 +1,4 @@
-(ns towpath.clipboard
+(ns classypants.clipboard
   (:import [java.awt Toolkit]
            [java.awt.datatransfer Clipboard DataFlavor StringSelection]))
 
