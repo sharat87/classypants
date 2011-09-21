@@ -1,11 +1,12 @@
 (ns classypants.core
   (:use seesaw.core
         [seesaw.mig :only (mig-panel)]
-        [clojure.contrib.string :as string]
         classypants.clipboard)
-  (:import [java.awt Color]
-           [javax.swing ListSelectionModel]
-           [java.io File]))
+  (:require [clojure.contrib.string :as string])
+  (:import [java.io File]
+           [java.awt Color]
+           [javax.swing JPopupMenu JMenuItem ListSelectionModel]
+           [javax.swing.event PopupMenuListener]))
 
 (native!)
 
@@ -34,7 +35,9 @@
   [filter-text entries]
   (map
     (fn [entry]
-      (assoc entry :matches? (not= (.indexOf (:path entry) filter-text) -1)))
+      (assoc entry :matches? (-> (:path entry)
+                               (.indexOf filter-text)
+                               (not= -1))))
     entries))
 
 (defn apply-filtered-data!
@@ -48,6 +51,18 @@
   [fr]
   (config! (select fr [:#cp-listbox])
            :model @current-entries))
+
+(defn show-action-menu
+  [e]
+  (let [component (.getSource e)
+        menu (popup :items [(action :name "Copy"
+                                    :key "menu C"
+                                    :handler (fn [e]
+                                               (prn "Copy!")))
+                            "White"])]
+    (.show menu component 0 0) ;To get the dimensions calculated
+    (.show menu component (- (.getWidth component) (.getWidth menu)) (.getHeight component))
+    menu))
 
 (defn delete-handler
   [fr e]
@@ -66,6 +81,7 @@
 
 (defn copy-handler
   [fr e]
+  (prn "Copy!")
   (set-cp-clipboard (filter-paths
                       (config (select fr [:#filter-input]) :text)
                       (enumeration-seq
@@ -116,11 +132,8 @@
                                               :insert-update handler
                                               :remove-update handler]))
                                  "grow"]
-                                [(action :name "< Clear"
-                                         :handler (fn [e]
-                                                    (config!
-                                                      (select main-frame [:#filter-input])
-                                                      :text "")))
+                                [(action :name "\\m/"
+                                         :handler show-action-menu)
                                  "wrap"]
-                                [(scrollable cp-listbox) "span, grow, push"]])
-             :visible? true)))
+                                [(scrollable cp-listbox) "push, grow"]]))
+  (show! main-frame)))
