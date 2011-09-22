@@ -1,7 +1,8 @@
 (ns classypants.core
   (:use seesaw.core
         [seesaw.mig :only (mig-panel)]
-        classypants.clipboard)
+        classypants.clipboard
+        [classypants.matcher :only (filter-paths)])
   (:require [clojure.contrib.string :as string])
   (:import [java.io File]
            [java.awt Color]
@@ -30,15 +31,6 @@
 
 (def current-entries
   (atom (get-cp-entries (System/getProperty "java.class.path"))))
-
-(defn filter-paths
-  [filter-text entries]
-  (map
-    (fn [entry]
-      (assoc entry :matches? (-> (:path entry)
-                               (.indexOf filter-text)
-                               (not= -1))))
-    entries))
 
 (defn apply-filtered-data!
   [fr]
