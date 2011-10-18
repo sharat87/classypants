@@ -32,4 +32,4 @@
          (digest-search-spec '[term1 :or term2]))))
 
 (deftest test-paint-match-status
-  (is (:matches? (first (paint-match-status "search-term" [{:path "ha search-term"}])))))
+  (is (:matches? (first (paint-match-status (parse-search-str "search-term") [{:path "ha search-term"}])))))

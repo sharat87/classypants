@@ -2,7 +2,7 @@
   (:use seesaw.core
         [seesaw.mig :only (mig-panel)]
         classypants.clipboard
-        [classypants.matcher :only (paint-match-status)])
+        [classypants.matcher :only (parse-search-str paint-match-status)])
   (:require [clojure.contrib.string :as string])
   (:import [java.io File]
            [java.awt Color]
@@ -34,10 +34,19 @@
 
 (defn apply-filtered-data!
   [fr]
-  (config! (select fr [:#cp-listbox])
-           :model (paint-match-status
-                    (config (select fr [:#filter-input]) :text)
-                    @current-entries)))
+  (let [search-str (config (select fr [:#filter-input]) :text)
+        err-display (select fr [:#err-display])
+        match-exp (try
+                    (config! err-display :visible? false)
+                    (parse-search-str search-str)
+                    (catch Exception e
+                      (config! err-display
+                               :text (.getLocalizedMessage e)
+                               :visible? true)))]
+    (config! (select fr [:#cp-listbox])
+             :model (paint-match-status
+                      match-exp
+                      @current-entries))))
 
 (defn reset-cplist
   [fr]
@@ -75,7 +84,7 @@
   [fr e]
   (prn "Copy!")
   (set-cp-clipboard (paint-match-status
-                      (config (select fr [:#filter-input]) :text)
+                      (parse-search-str (config (select fr [:#filter-input]) :text))
                       (enumeration-seq
                         (.elements (config (select fr [:#cp-listbox]) :model))))))
 
@@ -127,5 +136,12 @@
                                 [(action :name "\\m/"
                                          :handler show-action-menu)
                                  "wrap"]
+                                [(label :id :err-display
+                                        :text "Heyo"
+                                        :border 5
+                                        :foreground "#F99"
+                                        :background "#900"
+                                        :visible? false)
+                                 "growx,wrap"]
                                 [(scrollable cp-listbox) "push, grow"]]))
   (show! main-frame)))

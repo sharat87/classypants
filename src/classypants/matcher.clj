@@ -25,11 +25,7 @@
 
 (defn get-spec
   [spec-str]
-  (try
-    (read-string (str "[" spec-str "]"))
-    (catch Exception e
-      (println (.getLocalizedMessage e))
-      nil)))
+  (read-string (str "[" spec-str "]")))
 
 (def ^:dynamic *match-haystack* "")
 
@@ -59,5 +55,5 @@
   (map
     (fn [entry]
       (binding [*match-haystack* (:path entry)]
-        (assoc entry :matches? ((comp not false?) (eval (parse-search-str match-exp))))))
+        (assoc entry :matches? ((comp not false?) (eval match-exp)))))
     entries))
