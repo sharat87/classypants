@@ -2,7 +2,7 @@
   (:use seesaw.core
         [seesaw.mig :only (mig-panel)]
         classypants.clipboard
-        [classypants.matcher :only (filter-paths)])
+        [classypants.matcher :only (paint-match-status)])
   (:require [clojure.contrib.string :as string])
   (:import [java.io File]
            [java.awt Color]
@@ -35,7 +35,7 @@
 (defn apply-filtered-data!
   [fr]
   (config! (select fr [:#cp-listbox])
-           :model (filter-paths
+           :model (paint-match-status
                     (config (select fr [:#filter-input]) :text)
                     @current-entries)))
 
@@ -74,7 +74,7 @@
 (defn copy-handler
   [fr e]
   (prn "Copy!")
-  (set-cp-clipboard (filter-paths
+  (set-cp-clipboard (paint-match-status
                       (config (select fr [:#filter-input]) :text)
                       (enumeration-seq
                         (.elements (config (select fr [:#cp-listbox]) :model))))))
