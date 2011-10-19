@@ -1,4 +1,5 @@
-(ns classypants.matcher)
+(ns classypants.matcher
+  (:import java.util.zip.ZipFile))
 
 (defn str-in?
   "Check if a needle is a substring of haystack"
@@ -23,10 +24,24 @@
   [elem coll]
   (boolean (first (filter #(= % elem) coll))))
 
+(defn endswith?
+  [text end]
+  (let [text-length (.length text)
+        end-length (.length end)]
+    (and (> text-length end-length)
+         (= end (.substring text (- text-length end-length))))))
+
+(defn files-in-archive
+  [filename]
+  (map #(.getName %)
+       (filter #(not (.isDirectory %))
+               (enumeration-seq (.entries (ZipFile. filename))))))
+
 (defn get-spec
   [spec-str]
   (read-string (str "[" spec-str "]")))
 
+; TODO: Change this to *match-resource*
 (def ^:dynamic *match-haystack* "")
 
 (defn matches?
@@ -35,15 +50,39 @@
   [s]
   (str-in? s *match-haystack*))
 
+(defn matches-file?
+  "Checks if *match-haystack* contains the given filename"
+  [file]
+  (if (endswith? *match-haystack* ".jar")
+    (let [entries (files-in-archive *match-haystack*)]
+      (in? file entries))
+    false))
+
 (defn digest-search-spec
   [spec]
   (cond
-    (nil? spec) nil
+    (or (nil? spec)
+        (and (sequential? spec) (empty? spec))) nil
     (string? spec) (list `matches? spec)
     (or (keyword? spec) (symbol? spec)) (recur (name spec))
     (= 1 (count spec)) (recur (first spec))
+
+    ; (:has "filename") <- split stream with :has, pick one from post, construct matcher call
+    (in? :has spec) (let [[pre post] (split-on :has spec)
+                          digest (filter (comp not nil?)
+                                         ['or
+                                          (digest-search-spec pre)
+                                          (list `matches-file? (name (first post)))
+                                          (digest-search-spec (rest post))])]
+                      (if (> (count digest) 2)
+                        digest
+                        (last digest)))
+
+    ; Split with :and/:or and join the parts with an and/or call on recur'ed pre and post
     (in? :and spec) (conj (map digest-search-spec (split-on :and spec)) 'and)
     (in? :or spec) (conj (map digest-search-spec (split-on :or spec)) 'or)
+
+    ; Simply apply 'or on all items
     :else (conj (map digest-search-spec spec) 'or)))
 
 (def parse-search-str (comp digest-search-spec get-spec))

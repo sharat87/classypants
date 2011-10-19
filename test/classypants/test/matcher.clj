@@ -15,6 +15,11 @@
   (is (false? (in? :b [])))
   (is (false? (in? 2 [:a :b :c]))))
 
+(deftest test-endswith?
+  (is (endswith? "file.jar" ".jar"))
+  (is (not (endswith? "" ".jar")))
+  (is (endswith? "haha" "")))
+
 (deftest test-get-spec
   (is (= [:a]
          (get-spec ":a"))))
@@ -29,7 +34,9 @@
   (is (= '(or (classypants.matcher/matches? "term1") (classypants.matcher/matches? "term2"))
          (digest-search-spec '[term1 term2])))
   (is (= '(or (classypants.matcher/matches? "term1") (classypants.matcher/matches? "term2"))
-         (digest-search-spec '[term1 :or term2]))))
+         (digest-search-spec '[term1 :or term2])))
+  (is (= '(classypants.matcher/matches-file? "fname")
+         (digest-search-spec '[:has fname]))))
 
 (deftest test-paint-match-status
   (is (:matches? (first (paint-match-status (parse-search-str "search-term") [{:path "ha search-term"}])))))
