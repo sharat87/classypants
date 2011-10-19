@@ -53,17 +53,44 @@
   (config! (select fr [:#cp-listbox])
            :model @current-entries))
 
-(defn show-action-menu
-  [e]
-  (let [component (.getSource e)
-        menu (popup :items [(action :name "Copy"
-                                    :key "menu C"
-                                    :handler (fn [e]
-                                               (prn "Copy!")))
-                            "White"])]
-    (.show menu component 0 0) ;To get the dimensions calculated
-    (.show menu component (- (.getWidth component) (.getWidth menu)) (.getHeight component))
-    menu))
+(defn copy-handler
+  [fr e]
+  (set-cp-clipboard (paint-match-status
+                      (parse-search-str (config (select fr [:#filter-input]) :text))
+                      (enumeration-seq
+                        (.elements (config (select fr [:#cp-listbox]) :model))))))
+
+(defn copy-action
+  [fr]
+  (action :name "Copy"
+          :key "menu C"
+          :handler #(copy-handler fr %)))
+
+(comment defmacro def-menu
+  [fn-name title hotkey & body]
+  `(defn ~fn-name
+     [fr]
+     (action :name ~title
+             :key ~hotkey
+             :handler (fn [e] ~@body))))
+
+(comment def-menu copy-action "Copy" "menu C"
+  (set-cp-clipboard (paint-match-status
+                      (parse-search-str (config (select fr [:#filter-input]) :text))
+                      (enumeration-seq
+                        (.elements (config (select fr [:#cp-listbox]) :model))))))
+
+(defn paste-handler
+  [fr e]
+  (swap! current-entries
+         (fn [_] (get-cp-entries (get-clipboard-text))))
+  (apply-filtered-data! fr))
+
+(defn paste-action
+  [fr]
+  (action :name "Paste"
+          :key "menu V"
+          :handler #(paste-handler fr %)))
 
 (defn delete-handler
   [fr e]
@@ -80,19 +107,18 @@
                              prev-entries))))
     (reset-cplist fr)))
 
-(defn copy-handler
-  [fr e]
-  (prn "Copy!")
-  (set-cp-clipboard (paint-match-status
-                      (parse-search-str (config (select fr [:#filter-input]) :text))
-                      (enumeration-seq
-                        (.elements (config (select fr [:#cp-listbox]) :model))))))
+(defn delete-selection-action
+  [fr]
+  (action :name "Delete Selected"
+          :key "menu D"
+          :handler #(delete-handler fr %)))
 
-(defn paste-handler
+(defn show-action-menu
   [fr e]
-  (swap! current-entries
-         (fn [_] (get-cp-entries (get-clipboard-text))))
-  (apply-filtered-data! fr))
+  (let [component (.getSource e)
+        menu (popup :items (map #(% fr) [copy-action paste-action delete-selection-action]))]
+    (.show menu component 0 (.getHeight component))
+    menu))
 
 (defn -main
   []
@@ -113,35 +139,26 @@
                                    (if-not (:exists? entry)
                                      (.setBackground this (if (:selected? state)
                                                             error-selected-color
-                                                            error-unselected-color))))))]
+                                                            error-unselected-color))))))
+        menu-action (action :name "\\m/"
+                            :handler #(show-action-menu main-frame %))
+        err-display (label :id :err-display
+                                        :text "Heyo"
+                                        :border 5
+                                        :foreground "#F99"
+                                        :background "#900"
+                                        :visible? false)]
     (.setSelectionMode (.getSelectionModel cp-listbox) ListSelectionModel/MULTIPLE_INTERVAL_SELECTION)
     (config! main-frame
              :content (mig-panel
-                        :items [[(action :name "Copy"
-                                         :handler #(copy-handler main-frame %))
-                                 "split"]
-                                [(action :name "Paste"
-                                         :handler #(paste-handler main-frame %))]
-                                [(action :name "Delete Selected"
-                                         :handler #(delete-handler main-frame %))
-                                 "wrap"]
-                                ["Filter:" "split"]
+                        :items [[menu-action "split"]
                                 [(letfn [(handler [e]
                                            (apply-filtered-data! main-frame))]
                                    (text :id :filter-input
                                      :listen [:changed-update handler
                                               :insert-update handler
                                               :remove-update handler]))
-                                 "grow"]
-                                [(action :name "\\m/"
-                                         :handler show-action-menu)
-                                 "wrap"]
-                                [(label :id :err-display
-                                        :text "Heyo"
-                                        :border 5
-                                        :foreground "#F99"
-                                        :background "#900"
-                                        :visible? false)
-                                 "growx,wrap"]
+                                 "grow, wrap"]
+                                [err-display "growx, wrap"]
                                 [(scrollable cp-listbox) "push, grow"]]))
   (show! main-frame)))
