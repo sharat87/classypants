@@ -120,7 +120,7 @@
     (.show menu component 0 (.getHeight component))
     menu))
 
-(defn -main
+(defn start-app
   []
   (let [main-frame (frame :title "Classypants"
                           :size [800 :by 600]
