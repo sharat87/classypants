@@ -161,4 +161,5 @@
                                  "grow, wrap"]
                                 [err-display "growx, wrap"]
                                 [(scrollable cp-listbox) "push, grow"]]))
+    (.setLocationRelativeTo main-frame nil)
   (show! main-frame)))
