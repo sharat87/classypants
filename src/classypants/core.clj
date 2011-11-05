@@ -63,7 +63,7 @@
 (defn copy-action
   [fr]
   (action :name "Copy"
-          :key "menu C"
+          :key "menu shift C"
           :handler #(copy-handler fr %)))
 
 (comment defmacro def-menu
@@ -89,7 +89,7 @@
 (defn paste-action
   [fr]
   (action :name "Paste"
-          :key "menu V"
+          :key "menu shift V"
           :handler #(paste-handler fr %)))
 
 (defn delete-handler
@@ -110,15 +110,8 @@
 (defn delete-selection-action
   [fr]
   (action :name "Delete Selected"
-          :key "menu D"
+          :key "menu shift D"
           :handler #(delete-handler fr %)))
-
-(defn show-action-menu
-  [fr e]
-  (let [component (.getSource e)
-        menu (popup :items (map #(% fr) [copy-action paste-action delete-selection-action]))]
-    (.show menu component 0 (.getHeight component))
-    menu))
 
 (defn start-app
   []
@@ -140,18 +133,23 @@
                                      (.setBackground this (if (:selected? state)
                                                             error-selected-color
                                                             error-unselected-color))))))
-        menu-action (action :name "\\m/"
-                            :handler #(show-action-menu main-frame %))
         err-display (label :id :err-display
-                                        :text "Heyo"
-                                        :border 5
-                                        :foreground "#F99"
-                                        :background "#900"
-                                        :visible? false)]
+                           :text "Heyo"
+                           :border 5
+                           :foreground "#F99"
+                           :background "#900"
+                           :visible? false)]
     (.setSelectionMode (.getSelectionModel cp-listbox) ListSelectionModel/MULTIPLE_INTERVAL_SELECTION)
     (config! main-frame
              :content (mig-panel
-                        :items [[menu-action "split"]
+                        :items [[(menubar
+                                   :items [(menu :text "\\m/"
+                                                 :items (map
+                                                          #(% main-frame)
+                                                          [copy-action
+                                                           paste-action
+                                                           delete-selection-action]))])
+                                 "split"]
                                 [(letfn [(handler [e]
                                            (apply-filtered-data! main-frame))]
                                    (text :id :filter-input
@@ -162,4 +160,4 @@
                                 [err-display "growx, wrap"]
                                 [(scrollable cp-listbox) "push, grow"]]))
     (.setLocationRelativeTo main-frame nil)
-  (show! main-frame)))
+    (show! main-frame)))
