@@ -53,47 +53,37 @@
   (config! (select fr [:#cp-listbox])
            :model @current-entries))
 
-(defn copy-handler
-  [fr e]
+(defn title-case
+  [^String s]
+  (str (.toUpperCase (.substring s 0 1))
+       (.substring s 1)))
+
+(defmacro defmenu
+  [fn-name hotkey & body]
+  (let [title (-> (name fn-name)
+                (.replace "-action" "")
+                (.replace "-" " ")
+                title-case)
+        args1 ['fr]
+        args2 ['e]]
+    `(defn ~fn-name
+       ~args1
+       (action :name ~title
+               :key ~hotkey
+               :handler (fn ~args2 ~@body)))))
+
+(defmenu copy-action "menu shift C"
   (set-cp-clipboard (paint-match-status
                       (parse-search-str (config (select fr [:#filter-input]) :text))
                       (enumeration-seq
                         (.elements (config (select fr [:#cp-listbox]) :model))))))
 
-(defn copy-action
-  [fr]
-  (action :name "Copy"
-          :key "menu shift C"
-          :handler #(copy-handler fr %)))
-
-(comment defmacro def-menu
-  [fn-name title hotkey & body]
-  `(defn ~fn-name
-     [fr]
-     (action :name ~title
-             :key ~hotkey
-             :handler (fn [e] ~@body))))
-
-(comment def-menu copy-action "Copy" "menu C"
-  (set-cp-clipboard (paint-match-status
-                      (parse-search-str (config (select fr [:#filter-input]) :text))
-                      (enumeration-seq
-                        (.elements (config (select fr [:#cp-listbox]) :model))))))
-
-(defn paste-handler
-  [fr e]
+(defmenu paste-action "menu shift V"
   (swap! current-entries
          (fn [_] (get-cp-entries (get-clipboard-text))))
   (apply-filtered-data! fr))
 
-(defn paste-action
-  [fr]
-  (action :name "Paste"
-          :key "menu shift V"
-          :handler #(paste-handler fr %)))
-
-(defn delete-handler
-  [fr e]
+(defmenu delete-selection-action "menu shift D"
   (let [cp-listbox (select fr [:#cp-listbox])
         data-model (.getModel cp-listbox)
         selection-model (.getSelectionModel cp-listbox)]
@@ -106,12 +96,6 @@
                                  entry))
                              prev-entries))))
     (reset-cplist fr)))
-
-(defn delete-selection-action
-  [fr]
-  (action :name "Delete Selected"
-          :key "menu shift D"
-          :handler #(delete-handler fr %)))
 
 (defn start-app
   []
