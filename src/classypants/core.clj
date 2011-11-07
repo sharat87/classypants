@@ -11,6 +11,21 @@
 
 (native!)
 
+(def status-label (label :text  "If you are wearing pants, they better be classy!"
+                         :border 5))
+
+(defn set-status
+  [level- & strs]
+  (let [level (if (keyword? level-)
+                level-
+                :info)
+        strs (if (keyword? level-)
+               strs
+               (conj strs level))]
+    (config! status-label :text (apply str strs))
+    (config!* status-label {:foreground "#99F"
+                            :background "#009"})))
+
 (defrecord CpEntry [path exists? matches?])
 
 (defn new-cpentry
@@ -35,14 +50,10 @@
 (defn apply-filtered-data!
   [fr]
   (let [search-str (config (select fr [:#filter-input]) :text)
-        err-display (select fr [:#err-display])
         match-exp (try
-                    (config! err-display :visible? false)
                     (parse-search-str search-str)
                     (catch Exception e
-                      (config! err-display
-                               :text (.getLocalizedMessage e)
-                               :visible? true)))]
+                      (set-status :error (.getLocalizedMessage e))))]
     (config! (select fr [:#cp-listbox])
              :model (paint-match-status
                       match-exp
@@ -97,6 +108,9 @@
                              prev-entries))))
     (reset-cplist fr)))
 
+(defmenu test-action "menu shift T"
+  (set-status :info "hoohaw"))
+
 (defn start-app
   []
   (let [main-frame (frame :title "Classypants"
@@ -116,13 +130,7 @@
                                    (if-not (:exists? entry)
                                      (.setBackground this (if (:selected? state)
                                                             error-selected-color
-                                                            error-unselected-color))))))
-        err-display (label :id :err-display
-                           :text "Heyo"
-                           :border 5
-                           :foreground "#F99"
-                           :background "#900"
-                           :visible? false)]
+                                                            error-unselected-color))))))]
     (.setSelectionMode (.getSelectionModel cp-listbox) ListSelectionModel/MULTIPLE_INTERVAL_SELECTION)
     (config! main-frame
              :content (mig-panel
@@ -132,7 +140,8 @@
                                                           #(% main-frame)
                                                           [copy-action
                                                            paste-action
-                                                           delete-selection-action]))])
+                                                           delete-selection-action
+                                                           test-action]))])
                                  "split"]
                                 [(letfn [(handler [e]
                                            (apply-filtered-data! main-frame))]
@@ -141,7 +150,7 @@
                                               :insert-update handler
                                               :remove-update handler]))
                                  "grow, wrap"]
-                                [err-display "growx, wrap"]
-                                [(scrollable cp-listbox) "push, grow"]]))
+                                [(scrollable cp-listbox) "push, grow, wrap"]
+                                [status-label "growx"]]))
     (.setLocationRelativeTo main-frame nil)
     (show! main-frame)))
