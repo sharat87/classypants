@@ -6,6 +6,7 @@
   (:require [clojure.contrib.string :as string])
   (:import [java.io File]
            [java.awt Color]
+           [java.awt.event KeyEvent]
            [javax.swing JPopupMenu JMenuItem ListSelectionModel]
            [javax.swing.event PopupMenuListener]))
 
@@ -144,12 +145,10 @@
                                                            delete-selection-action
                                                            test-action]))])
                                  "split"]
-                                [(letfn [(handler [e]
-                                           (apply-filtered-data! main-frame))]
-                                   (text :id :filter-input
-                                     :listen [:changed-update handler
-                                              :insert-update handler
-                                              :remove-update handler]))
+                                [(text :id :filter-input
+                                       :listen [:key-released (fn [e]
+                                                                (if (= (.getKeyCode e) KeyEvent/VK_ENTER)
+                                                                  (apply-filtered-data! main-frame)))])
                                  "grow, wrap"]
                                 [(scrollable cp-listbox) "push, grow, wrap"]
                                 [status-label "growx"]]))
