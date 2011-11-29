@@ -23,8 +23,9 @@
                strs
                (conj strs level))]
     (config! status-label :text (apply str strs))
-    (config!* status-label {:foreground "#99F"
-                            :background "#009"})))
+    (config! status-label
+             :foreground "#99F"
+             :background "#009")))
 
 (defrecord CpEntry [path exists? matches?])
 
