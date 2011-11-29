@@ -41,20 +41,19 @@
   [spec-str]
   (read-string (str "[" spec-str "]")))
 
-; TODO: Change this to *match-resource*
-(def ^:dynamic *match-haystack* "")
+(def ^:dynamic *match-resource* "")
 
 (defn matches?
   "Checks if a resource (jar/dir) is considered as matched corresponding to
   the given filter-text"
   [s]
-  (str-in? s *match-haystack*))
+  (str-in? s *match-resource*))
 
 (defn matches-file?
-  "Checks if *match-haystack* contains the given filename"
+  "Checks if *match-resource* contains the given filename"
   [file]
-  (if (endswith? *match-haystack* ".jar")
-    (let [entries (files-in-archive *match-haystack*)]
+  (if (endswith? *match-resource* ".jar")
+    (let [entries (files-in-archive *match-resource*)]
       (in? file entries))
     false))
 
@@ -93,6 +92,6 @@
   [match-exp entries]
   (map
     (fn [entry]
-      (binding [*match-haystack* (:path entry)]
+      (binding [*match-resource* (:path entry)]
         (assoc entry :matches? ((comp not false?) (eval match-exp)))))
     entries))
