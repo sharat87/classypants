@@ -81,6 +81,9 @@
     (in? :and spec) (conj (map digest-search-spec (split-on :and spec)) 'and)
     (in? :or spec) (conj (map digest-search-spec (split-on :or spec)) 'or)
 
+    ; (:not spec) <- Filter entries that don't match given spec
+    (= (first spec) :not) (list 'not (digest-search-spec (rest spec)))
+
     ; Simply apply 'or on all items
     :else (conj (map digest-search-spec spec) 'or)))
 
