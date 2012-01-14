@@ -178,3 +178,17 @@
         <script async type=text/javascript src=//platform.twitter.com/widgets.js></script>
         <script async type=text/javascript src=//apis.google.com/js/plusone.js></script>
         <script async type=text/javascript src=http://api.flattr.com/js/0.6/load.js?mode=auto></script>
+
+        <!-- Piwik analytics -->
+        <script src="//piwik.sharats.me/piwik.js"></script>
+        <script>
+            (function () {
+                try {
+                    var t = Piwik.getTracker("http://piwik.sharats.me/piwik.php", 1);
+                    t.trackPageView();
+                    t.enableLinkTracking();
+                } catch( err ) {}
+            })();
+        </script>
+        <noscript><img src="http://piwik.sharats.me/piwik.php?idsite=1" style=border:0 alt=""></noscript>
+        <!-- End Piwik Tracking Code -->
