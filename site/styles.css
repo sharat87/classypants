@@ -92,3 +92,14 @@ footer {
     text-align: center;
     opacity: .7;
 }
+
+aside {
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+aside > * {
+    display: block;
+    margin-top: 12px !important;
+}
