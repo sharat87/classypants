@@ -1,0 +1,35 @@
+html {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-size: 18px;
+    width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+img.block {
+    display: block;
+    margin: 12px auto;
+    box-shadow: 2px 2px 24px rgba(0, 0, 0, .3);
+}
+
+.exp {
+    background-color: #FFE0B2;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #E58A00;
+    font-size: .8em;
+    font-style: normal;
+}
+
+footer {
+    border-top: thin solid gray;
+    margin-top: 18px;
+    padding-top: 6px;
+    margin-bottom: 12px;
+    text-align: center;
+    opacity: .7;
+}
