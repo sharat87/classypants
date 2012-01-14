@@ -20,8 +20,8 @@
 
         <img src=screenshot.png alt=Screenshot class=block>
 
-        <p>As you can see, the window is pretty simple. There is one menu at
-            the top left, a search bar at the top and the list of entries as
+        <p>As you can see, the window is pretty simple. There is one menu (\m/)
+            at the top left, a search bar at the top and the list of entries as
             the main focus. A few entries are highlighted in red, which
             indicates that they don't exist on the file system.</p>
 
@@ -59,10 +59,10 @@
 
         <h3>Simple searching</h3>
 
-        <p>You can just type a word in the search input and expect all entries
-            that contain this word to be matched. Go on, try it.</p>
+        <p>You can just type a word in the search input, hit Return and expect
+            all entries that contain this word to be matched. For example,</p>
 
-        <i>TBD: add screenshot</i>
+        <pre class=search-input>resources</pre>
 
         <p class=note>Please note that whatever you enter in the search bar,
             needs to be a valid clojure atom. Be it a symbol/string/number/list
@@ -81,7 +81,7 @@
             don't match your search string, you'll use the <code>:not</code>
             modifier.</p>
 
-        <pre>:not ".jar"</pre>
+        <pre class=search-input>:not ".jar"</pre>
 
         <p>will match all entries that do <b>not</b> contain <code>.jar</code>
 
@@ -90,7 +90,7 @@
         <p>Similar to the <code>:not</code> above, you also have <code>:and</code> and
             <code>:or</code> to mix and match against your entries.</p>
 
-        <pre>lib :and ".jar"</pre>
+        <pre class=search-input>lib :and ".jar"</pre>
 
         <p>will match entries that have both <code>lib</code> and
             <code>.jar</code> in them.</p>
@@ -103,7 +103,7 @@
             directories (or archives) that contain the said file or directory. For example, the
             search string,</p>
 
-        <pre>:has my-awesome-resource.xml</pre>
+        <pre class=search-input>:has my-awesome-resource.xml</pre>
 
         <p>will filter out the directories that contain this file
             <code>my-awesome-resource.xml</code> present inside them.</p>
