@@ -1,6 +1,4 @@
-syntax: glob
 pom.xml
-lib/*jar
 lib
 classes
 .lein-failures
