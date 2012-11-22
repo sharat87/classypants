@@ -7,4 +7,4 @@ variables. Learn more about the project on the [project page](http://classypants
 
 Copyright (C) 2011 Shrikant Sharat Kandula.
 
-Distributed under the [MIT License](http://mit.sharats.me).
+Distributed under the [MIT License](http://mitl.sharats.me).
