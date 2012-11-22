@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+
+    <head>
+        <meta charset=utf8>
+        <title>Classypants - A PATH env variable viewer</title>
+
+        <link rel=stylesheet href=styles.css>
+
+    <body>
+
+        <h1>Classypants</h1>
+
+        <h2>Overview</h2>
+
+        <p>Classypants is a tool to help make sense of the values of
+            <code>$PATH</code> like environment variables. The following
+            screenshot should give an idea of how a classypants window looks
+            like.</p>
+
+        <img src=screenshot.png alt=Screenshot class=block>
+
+        <p>As you can see, the window is pretty simple. There is one menu (\m/)
+            at the top left, a search bar at the top and the list of entries as
+            the main focus. A few entries are highlighted in red, which
+            indicates that they don't exist on the file system.</p>
+
+        <h2>Download</h2>
+
+        <p>Download the latest jar <a
+                href="https://bitbucket.org/sharat87/classypants/downloads/classypants-0.0.3-dev-standalone.jar">here</a>.
+            Or browse the files on the <a
+                href=https://bitbucket.org/sharat87/classypants/downloads>
+            github project page</a>.</p>
+
+        <h2>Basic Usage</h2>
+
+        <p>Once you open classypants, you need to get the value of your
+            <code>$PATH</code> variable into classypants. Currently, the only
+            way to do this is via the clipboard.  Copy your <code>$PATH</code>
+            variable's value and go to the menu at the top left and click on
+            <i>Paste</i> or just hit <kbd>C-S-v</kbd>. Classypants will
+            sanitize and show you the content in a human-consumable way.</p>
+
+        <p>You can search for entries you want to find by entering the search
+            string in the top input box and hit the <kbd>Return</kbd> key. The
+            search box is quite powerful and although not immediately apparent,
+            features a lisp-backed syntax to do complex queries on your
+            entries.</p>
+
+        <p class=note>Note that a <i>Copy</i> menu item is also present, which,
+            well copies a <code>$PATH</code> like value with the current
+            entries. This might be more useful, once editing features are added
+            to Classypants.</p>
+
+        <h2>Search</h2>
+
+        <p>Classypants' advanced search is the thing I love about it. It might
+            seem hard and even ridiculous, but if you let it sink it, it will
+            feel quite natural and you might even want it every where :). That
+            said, if you have a slight knowledge of clojure the language,
+            you'll be right at home with this syntax.</p>
+
+        <h3>Simple searching</h3>
+
+        <p>You can just type a word in the search input, hit Return and expect
+            all entries that contain this word to be matched. For example,</p>
+
+        <pre class=search-input>resources</pre>
+
+        <p class=note>Please note that whatever you enter in the search bar,
+            needs to be a valid clojure atom. Be it a symbol/string/number/list
+            or anything else. If you don't know what it means, don't worry. It
+            just means that in case you are entering anything non-alphanumeric
+            in the search bar, you'll almost certainly need to enclose it in
+            <code>"</code> characters. For example, filtering for all that have
+            <code>.jar</code> in their value, you have to search for
+            <code>".jar"</code>, not <code>.jar</code>. If you are doubtful as
+            to whether you need the quotes, it is safer to put them in. No harm
+            done.</p>
+
+        <h3>Negate match</h3>
+
+        <p>Your first search modifier. If you want to match all entries that
+            don't match your search string, you'll use the <code>:not</code>
+            modifier.</p>
+
+        <pre class=search-input>:not ".jar"</pre>
+
+        <p>will match all entries that do <b>not</b> contain <code>.jar</code>
+
+        <h3>Combine searches</h3>
+
+        <p>Similar to the <code>:not</code> above, you also have <code>:and</code> and
+            <code>:or</code> to mix and match against your entries.</p>
+
+        <pre class=search-input>lib :and ".jar"</pre>
+
+        <p>will match entries that have both <code>lib</code> and
+            <code>.jar</code> in them.</p>
+
+        <h3>Can Haz?</h3>
+
+        <em class=exp>Experimental</em>
+
+        <p>Using the <code>:has</code> directive, you can match the entries that point to
+            directories (or archives) that contain the said file or directory. For example, the
+            search string,</p>
+
+        <pre class=search-input>:has "my-awesome-resource.xml"</pre>
+
+        <p>will filter out the directories that contain this file
+            <code>my-awesome-resource.xml</code> present inside them.</p>
+
+        <h3>More directives</h3>
+
+        <p>I'll add more useful directives as I come to need them. If you need
+            something, open up an issue on the <a
+                href="https://github.com/sharat87/classypants/issues">github
+                project page</a>. If you can fork and send me a pull request,
+            that'd be fantastic.</p>
+
+        <h2>Inspiration</h2>
+
+        <p>I once had to (and still have to, occasionally) deal with extremely
+            long <code>CLASSPATH</code> variable values, which were built with
+            large shell scripts and it included many non-existent
+            jars/directories, many ones that were of the same third party
+            library, but of different versions, you get the point. I needed a
+            way to get a bird's eye view of the <code>CLASSPATH</code>.
+            Initially, I used to just do</p>
+
+        <pre>$ echo "$CLASSPATH" | tr : '\n' | grep 'what-am-i-looking-for'</pre>
+
+        <p>But, quickly enough, I wanted more. I needed to find the first
+            entry in the <code>CLASSPATH</code> that contained a particular
+            class file. Now, I could go ahead and do that in the shell too,
+            but I decided I'd make a tool to give a visual appeal to these
+            rather lifeless variables. Moreover, I needed a reason to make
+            something in clojure :)</p>
+
+        <h2>Contribute</h2>
+
+        <p>Just fork the <a href=http://mit.sharats.me>project</a>, make your
+            modifications and send in a pull request. If you a find a bug or
+            have a feature idea, create an <a
+                href="https://github.com/sharat87/classypants/issues/new">issue</a>
+            and we can discuss it there and may be make it happen.</p>
+
+        <h2>License</h2>
+
+        <p>As always, this work is licensed under the <a
+                href=http://mit.sharats.me>MIT License</a>. You can get the soure
+            from the <a href="https://github.com/sharat87/classypants">
+                github project page</a>.</p>
+
+        <footer>
+            &copy; Copyright 2012. Shrikant Sharat Kandula. Follow me on twitter
+            <a href="https://twitter.com/#!sharat87" target=_blank>@sharat87</a>.
+        </footer>
+
+        <aside>
+            <a href=https://twitter.com/share class=twitter-share-button
+                data-count=horizontal data-via=sharat87>Tweet</a>
+            <div class="g-plusone"></div>
+            <a class=FlattrButton style=display:none rev=flattr;button:compact;
+                href=http://classypants.sharats.me></a>
+            <noscript>
+                <a href=http://flattr.com/thing/438601/ti-A-simple-time-tracker-for-the-command-line
+                    target=_blank>
+                <img src=http://api.flattr.com/button/flattr-badge-large.png
+                    alt="Flattr this" title="Flattr this" border=0></a>
+            </noscript>
+            <a href="https://github.com/sharat87/classypants">On github</a>
+        </aside>
+
+        <script async type=text/javascript src=main.js></script>
+        <script async type=text/javascript src=//platform.twitter.com/widgets.js></script>
+        <script async type=text/javascript src=//apis.google.com/js/plusone.js></script>
+        <script async type=text/javascript src=http://api.flattr.com/js/0.6/load.js?mode=auto></script>
+
+        <!-- Piwik analytics -->
+        <script src="//piwik.sharats.me/piwik.js"></script>
+        <script>
+            (function () {
+                try {
+                    var t = Piwik.getTracker("http://piwik.sharats.me/piwik.php", 1);
+                    t.trackPageView();
+                    t.enableLinkTracking();
+                } catch( err ) {}
+            })();
+        </script>
+        <noscript><img src="http://piwik.sharats.me/piwik.php?idsite=1" style=border:0 alt=""></noscript>
+        <!-- End Piwik Tracking Code -->
